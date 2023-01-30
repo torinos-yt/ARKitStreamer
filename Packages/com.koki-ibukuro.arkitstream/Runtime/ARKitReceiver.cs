@@ -18,7 +18,7 @@ namespace ARKitStream
         private CommandBuffer commandBuffer;
         private Material bufferMaterial;
 
-        private ARKitReproducer _reproducer;
+        private ARKitReproducer reproducer;
 
 
         private RenderTexture[] renderTextures;
@@ -156,7 +156,7 @@ namespace ARKitStream
 
             bufferMaterial = new Material(Shader.Find("Unlit/ARKitStreamReceiver"));
 
-            _reproducer = gameObject.GetComponentInChildren<ARKitReproducer>();
+            reproducer = gameObject.GetComponent<ARKitReproducer>();
 
             SetupPose();
         }
@@ -185,7 +185,7 @@ namespace ARKitStream
 
         private void Update()
         {
-            if(_reproducer.Texture == null)
+            if(reproducer?.Texture == null)
             {
                 var rt = ndiReceiver.texture;
                 if (rt == null)
@@ -222,17 +222,17 @@ namespace ARKitStream
             }
             else
             {
-                if (ndiSourceSize.x != _reproducer.Texture.width || ndiSourceSize.y != _reproducer.Texture.height)
+                if (ndiSourceSize.x != reproducer.Texture.width || ndiSourceSize.y != reproducer.Texture.height)
                 {
-                    InitTexture(_reproducer.Texture);
-                    ndiSourceSize = new Vector2Int(_reproducer.Texture.width, _reproducer.Texture.height);
+                    InitTexture(reproducer.Texture);
+                    ndiSourceSize = new Vector2Int(reproducer.Texture.width, reproducer.Texture.height);
                 }
 
                 // Decode Textures
                 commandBuffer.Clear();
                 for (int i = 0; i < renderTextures.Length; i++)
                 {
-                    commandBuffer.Blit(_reproducer.Texture, renderTextures[i], bufferMaterial, i);
+                    commandBuffer.Blit(reproducer.Texture, renderTextures[i], bufferMaterial, i);
                 }
                 Graphics.ExecuteCommandBuffer(commandBuffer);
 

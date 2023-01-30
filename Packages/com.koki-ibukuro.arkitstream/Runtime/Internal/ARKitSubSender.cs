@@ -11,7 +11,7 @@ namespace ARKitStream.Internal
         protected virtual void Start()
         {
             var sender = GetComponent<ARKitSender>();
-            var recorder = GetComponentInChildren<ARKitRecorder>();
+            var recorder = GetComponent<ARKitRecorder>();
             sender.PacketTransformer += OnPacketTransformer;
             recorder.PacketTransformer += OnPacketTransformer;
             sender.NdiTransformer += OnNdiTransformer;
@@ -20,7 +20,7 @@ namespace ARKitStream.Internal
         protected virtual void OnDestroy()
         {
             var sender = GetComponent<ARKitSender>();
-            var recorder = GetComponentInChildren<ARKitRecorder>();
+            var recorder = GetComponent<ARKitRecorder>();
             sender.PacketTransformer -= OnPacketTransformer;
             recorder.PacketTransformer -= OnPacketTransformer;
             sender.NdiTransformer -= OnNdiTransformer;

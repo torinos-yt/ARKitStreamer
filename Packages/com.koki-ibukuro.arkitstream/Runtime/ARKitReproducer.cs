@@ -8,13 +8,16 @@ using ARKitStream.Internal;
 // Replay AR data and camera images
 namespace ARKitStream
 {
+    [DisallowMultipleComponent]
+    [RequireComponent(typeof(ARKitReceiver))]
     public sealed class ARKitReproducer : MonoBehaviour
     {
 
         [SerializeField] ARCameraManager cameraManager = null;
         [SerializeField] uint port = 8888;
         [SerializeField] int targetFrameRate = 30;
-        [SerializeField] ARKitReceiver _receiver;
+
+        ARKitReceiver receiver;
 
         RenderTexture renderTexture;
         public string SavePath;
@@ -35,12 +38,7 @@ namespace ARKitStream
 
         void Start()
         {
-
-            if (!Application.isEditor)
-            {
-                Destroy(gameObject);
-                return;
-            }
+            receiver = gameObject.GetComponent<ARKitReceiver>();
 
             SavePath = Application.persistentDataPath + "/saved-ardata.bytes";
             dirPath = Application.persistentDataPath + "/imgs/";
@@ -85,7 +83,7 @@ namespace ARKitStream
             coroutine.MoveNext();
             if (coroutine.Current.Length > 0)
             {
-                _receiver.Packet = ARKitRemotePacket.Deserialize(coroutine.Current);
+                receiver.Packet = ARKitRemotePacket.Deserialize(coroutine.Current);
             }
         }
 

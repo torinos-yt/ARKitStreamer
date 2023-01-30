@@ -3,18 +3,17 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
-using Unity.Collections.LowLevel.Unsafe;
 using ARKitStream.Internal;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering;
 
 // Save AR Related data and camera images
 namespace ARKitStream
 {
+    [DisallowMultipleComponent]
+    [RequireComponent(typeof(ARKitSender))]
     public sealed class ARKitRecorder : MonoBehaviour
     {
         [SerializeField] ARCameraManager cameraManager = null;
-        [SerializeField] ARKitSender _sender;
+        ARKitSender sender;
         internal event Action<ARKitRemotePacket> PacketTransformer;
         Texture2D mTexture;
         XRCpuImage image;
@@ -29,13 +28,8 @@ namespace ARKitStream
 
         void Start()
         {
-            if (Application.isEditor)
-            {
-                Destroy(gameObject);
-                return;
-            }
-
             recordController = GameObject.Find("Record Button").GetComponent<RecordController>();
+            sender = gameObject.GetComponent<ARKitSender>();
 
             // Set event for cameraManager
             // cameraManager.frameReceived += OnCameraFrameReceived;
@@ -137,11 +131,11 @@ namespace ARKitStream
 
         void InitSubSenders()
         {
-            TrackedPoseSender.TryCreate(_sender);
-            ARKitFaceSender.TryCreate(_sender);
-            ARKitOcclusionSender.TryCreate(_sender);
-            ARKitPlaneSender.TryCreate(_sender);
-            ARKitHumanBodySender.TryCreate(_sender);
+            TrackedPoseSender.TryCreate(sender);
+            ARKitFaceSender.TryCreate(sender);
+            ARKitOcclusionSender.TryCreate(sender);
+            ARKitPlaneSender.TryCreate(sender);
+            ARKitHumanBodySender.TryCreate(sender);
         }
 
     }

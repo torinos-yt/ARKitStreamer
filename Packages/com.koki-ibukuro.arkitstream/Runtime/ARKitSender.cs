@@ -25,7 +25,7 @@ namespace ARKitStream
         private NdiSender ndiSender;
         private CommandBuffer commandBuffer;
 
-        private ARKitRecorder _recorder;
+        private ARKitRecorder recorder;
 
         private void Awake()
         {
@@ -42,7 +42,7 @@ namespace ARKitStream
             commandBuffer.name = "ARKitStreamSender";
             bufferMaterial = new Material(Shader.Find("Unlit/ARKitStreamSender"));
             cameraManager.frameReceived += OnCameraFrameReceived;
-            _recorder = gameObject.GetComponentInChildren<ARKitRecorder>();
+            recorder = gameObject.GetComponent<ARKitRecorder>();
 
             Application.targetFrameRate = 60;
 
@@ -109,7 +109,7 @@ namespace ARKitStream
             Graphics.ExecuteCommandBuffer(commandBuffer);
             commandBuffer.Clear();
 
-            _recorder.OnCameraFrameReceived(args, renderTexture);
+            recorder?.OnCameraFrameReceived(args, renderTexture);
         }
 
         private void InitNDI(int width, int height)
