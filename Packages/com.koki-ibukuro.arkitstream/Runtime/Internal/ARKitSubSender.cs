@@ -11,14 +11,18 @@ namespace ARKitStream.Internal
         protected virtual void Start()
         {
             var sender = GetComponent<ARKitSender>();
+            var recorder = GetComponentInChildren<ARKitRecorder>();
             sender.PacketTransformer += OnPacketTransformer;
+            recorder.PacketTransformer += OnPacketTransformer;
             sender.NdiTransformer += OnNdiTransformer;
         }
 
         protected virtual void OnDestroy()
         {
             var sender = GetComponent<ARKitSender>();
+            var recorder = GetComponentInChildren<ARKitRecorder>();
             sender.PacketTransformer -= OnPacketTransformer;
+            recorder.PacketTransformer -= OnPacketTransformer;
             sender.NdiTransformer -= OnNdiTransformer;
         }
 

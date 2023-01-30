@@ -13,6 +13,7 @@ namespace ARKitStream.Internal
             public long timestampNs;
             public float4x4 projectionMatrix;
             public float4x4 displayMatrix;
+            public float4 intrinsics;
             // public double? exposureDuration;
             // public float? exposureOffset;
 
@@ -20,12 +21,13 @@ namespace ARKitStream.Internal
             {
                 return timestampNs.Equals(o.timestampNs)
                     && projectionMatrix.Equals(o.projectionMatrix)
-                    && displayMatrix.Equals(o.displayMatrix);
+                    && displayMatrix.Equals(o.displayMatrix)
+                    && intrinsics.Equals(o.intrinsics);
             }
 
             public override string ToString()
             {
-                return $"[time: {timestampNs}, projection: {projectionMatrix}, display: {displayMatrix}]";
+                return $"[time: {timestampNs}, projection: {projectionMatrix}, display: {displayMatrix}, intrinsics: {intrinsics}]";
             }
         }
 

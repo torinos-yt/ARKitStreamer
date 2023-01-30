@@ -23,6 +23,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Samples/Plane.unity
     guid: a222a532a935149a48e625c46e41b4a7
+  - enabled: 1
+    path: Assets/Samples/Blank.unity
+    guid: fdea9a17e3e9f4a09af97b5c7c6a2a65
   m_configObjects:
     ARKitStream.ARKitStreamSetting: {fileID: 11400000, guid: 149b88601cfe84e038e61f05754c89ff,
       type: 2}

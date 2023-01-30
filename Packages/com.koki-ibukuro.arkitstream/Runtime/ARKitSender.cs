@@ -5,6 +5,8 @@ using UnityEngine.Rendering;
 using UnityEngine.XR.ARFoundation;
 using Klak.Ndi;
 using ARKitStream.Internal;
+using Unity.Mathematics;
+using UnityEngine.XR.ARSubsystems;
 
 namespace ARKitStream
 {
@@ -18,9 +20,12 @@ namespace ARKitStream
         internal event Action<Material> NdiTransformer;
 
         private Material bufferMaterial;
-        private RenderTexture renderTexture;
+        [System.NonSerialized]
+        public RenderTexture renderTexture;
         private NdiSender ndiSender;
         private CommandBuffer commandBuffer;
+
+        private ARKitRecorder _recorder;
 
         private void Awake()
         {
@@ -37,6 +42,9 @@ namespace ARKitStream
             commandBuffer.name = "ARKitStreamSender";
             bufferMaterial = new Material(Shader.Find("Unlit/ARKitStreamSender"));
             cameraManager.frameReceived += OnCameraFrameReceived;
+            _recorder = gameObject.GetComponentInChildren<ARKitRecorder>();
+
+            Application.targetFrameRate = 60;
 
             InitSubSenders();
         }
@@ -73,13 +81,17 @@ namespace ARKitStream
                 InitNDI(width, height);
             }
 
+            XRCameraIntrinsics intrinsics;
+            cameraManager.TryGetIntrinsics(out intrinsics);
+
             var packet = new ARKitRemotePacket()
             {
                 cameraFrame = new ARKitRemotePacket.CameraFrameEvent()
                 {
                     timestampNs = args.timestampNs.Value,
                     projectionMatrix = args.projectionMatrix.Value,
-                    displayMatrix = args.displayMatrix.Value
+                    displayMatrix = args.displayMatrix.Value,
+                    intrinsics = new float4(intrinsics.focalLength.x, intrinsics.focalLength.y, intrinsics.principalPoint.x, intrinsics.principalPoint.y)
                 }
             };
             PacketTransformer?.Invoke(packet);
@@ -96,6 +108,8 @@ namespace ARKitStream
             commandBuffer.Blit(null, renderTexture, bufferMaterial);
             Graphics.ExecuteCommandBuffer(commandBuffer);
             commandBuffer.Clear();
+
+            _recorder.OnCameraFrameReceived(args, renderTexture);
         }
 
         private void InitNDI(int width, int height)

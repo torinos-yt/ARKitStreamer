@@ -18,12 +18,15 @@ namespace ARKitStream
         private CommandBuffer commandBuffer;
         private Material bufferMaterial;
 
+        private ARKitReproducer _reproducer;
+
 
         private RenderTexture[] renderTextures;
         private Texture2D[] texture2Ds;
 
         private readonly object packetLock = new object();
-        private ARKitRemotePacket packet;
+        [System.NonSerialized]
+        public ARKitRemotePacket Packet;
 
         public Texture2D YTexture => texture2Ds == null ? null : texture2Ds[0];
         public Texture2D CbCrTexture => texture2Ds == null ? null : texture2Ds[1];
@@ -36,7 +39,7 @@ namespace ARKitStream
             {
                 lock (packetLock)
                 {
-                    if (texture2Ds != null && packet != null)
+                    if (texture2Ds != null && Packet != null)
                     {
                         return TrackingState.Tracking;
                     }
@@ -51,9 +54,9 @@ namespace ARKitStream
             {
                 lock (packetLock)
                 {
-                    if (packet != null)
+                    if (Packet != null)
                     {
-                        return packet.cameraFrame;
+                        return Packet.cameraFrame;
                     }
                 }
                 return default;
@@ -66,9 +69,9 @@ namespace ARKitStream
             {
                 lock (packetLock)
                 {
-                    if (packet != null)
+                    if (Packet != null)
                     {
-                        return packet.face;
+                        return Packet.face;
                     }
                     return null;
                 }
@@ -81,9 +84,9 @@ namespace ARKitStream
             {
                 lock (packetLock)
                 {
-                    if (packet != null)
+                    if (Packet != null)
                     {
-                        return packet.plane;
+                        return Packet.plane;
                     }
                     return null;
                 }
@@ -96,9 +99,9 @@ namespace ARKitStream
             {
                 lock (packetLock)
                 {
-                    if (packet != null)
+                    if (Packet != null)
                     {
-                        return packet.humanBody;
+                        return Packet.humanBody;
                     }
                     return null;
                 }
@@ -111,9 +114,9 @@ namespace ARKitStream
             {
                 lock (packetLock)
                 {
-                    if (packet != null)
+                    if (Packet != null)
                     {
-                        return packet.trackedPose;
+                        return Packet.trackedPose;
                     }
                     return default;
                 }
@@ -153,6 +156,8 @@ namespace ARKitStream
 
             bufferMaterial = new Material(Shader.Find("Unlit/ARKitStreamReceiver"));
 
+            _reproducer = gameObject.GetComponentInChildren<ARKitReproducer>();
+
             SetupPose();
         }
 
@@ -180,37 +185,62 @@ namespace ARKitStream
 
         private void Update()
         {
-            var rt = ndiReceiver.texture;
-            if (rt == null)
+            if(_reproducer.Texture == null)
             {
-                var ndiName = FindNdiName();
-                if (!string.IsNullOrWhiteSpace(ndiName) && ndiReceiver.ndiName != ndiName)
+                var rt = ndiReceiver.texture;
+                if (rt == null)
                 {
-                    ndiReceiver.ndiName = ndiName;
+                    var ndiName = FindNdiName();
+                    if (!string.IsNullOrWhiteSpace(ndiName) && ndiReceiver.ndiName != ndiName)
+                    {
+                        ndiReceiver.ndiName = ndiName;
+                    }
+                    return;
                 }
-                return;
-            }
-            if (ndiSourceSize.x != rt.width || ndiSourceSize.y != rt.height)
-            {
-                InitTexture(rt);
-                ndiSourceSize = new Vector2Int(rt.width, rt.height);
-            }
+                if (ndiSourceSize.x != rt.width || ndiSourceSize.y != rt.height)
+                {
+                    InitTexture(rt);
+                    ndiSourceSize = new Vector2Int(rt.width, rt.height);
+                }
 
-            // Decode Metadata
-            packet = ARKitRemotePacket.DeserializeFromNdiMetadata(ndiReceiver.metadata);
+                // Decode Metadata
+                Packet = ARKitRemotePacket.DeserializeFromNdiMetadata(ndiReceiver.metadata);
 
-            // Decode Textures
-            commandBuffer.Clear();
-            for (int i = 0; i < renderTextures.Length; i++)
-            {
-                commandBuffer.Blit(rt, renderTextures[i], bufferMaterial, i);
+                // Decode Textures
+                commandBuffer.Clear();
+                for (int i = 0; i < renderTextures.Length; i++)
+                {
+                    commandBuffer.Blit(rt, renderTextures[i], bufferMaterial, i);
+                }
+                Graphics.ExecuteCommandBuffer(commandBuffer);
+
+                // RenderTexture -> Texture2D
+                for (int i = 0; i < renderTextures.Length; i++)
+                {
+                    Graphics.CopyTexture(renderTextures[i], texture2Ds[i]);
+                }
             }
-            Graphics.ExecuteCommandBuffer(commandBuffer);
-
-            // RenderTexture -> Texture2D
-            for (int i = 0; i < renderTextures.Length; i++)
+            else
             {
-                Graphics.CopyTexture(renderTextures[i], texture2Ds[i]);
+                if (ndiSourceSize.x != _reproducer.Texture.width || ndiSourceSize.y != _reproducer.Texture.height)
+                {
+                    InitTexture(_reproducer.Texture);
+                    ndiSourceSize = new Vector2Int(_reproducer.Texture.width, _reproducer.Texture.height);
+                }
+
+                // Decode Textures
+                commandBuffer.Clear();
+                for (int i = 0; i < renderTextures.Length; i++)
+                {
+                    commandBuffer.Blit(_reproducer.Texture, renderTextures[i], bufferMaterial, i);
+                }
+                Graphics.ExecuteCommandBuffer(commandBuffer);
+
+                // RenderTexture -> Texture2D
+                for (int i = 0; i < renderTextures.Length; i++)
+                {
+                    Graphics.CopyTexture(renderTextures[i], texture2Ds[i]);
+                }
             }
         }
 
