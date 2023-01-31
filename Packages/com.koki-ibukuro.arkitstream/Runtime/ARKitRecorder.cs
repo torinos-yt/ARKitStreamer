@@ -4,6 +4,9 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.XR.ARFoundation;
 using ARKitStream.Internal;
+using Unity.Collections;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 // Save AR Related data and camera images
 namespace ARKitStream
@@ -80,11 +83,9 @@ namespace ARKitStream
                     SafeCreateDirectory(Application.persistentDataPath + "/" + timeStamp);
                     saveARtoFile(data);
 
-                    var texData = request.GetData<Color32>();
-                    tex2D.LoadRawTextureData(texData);
+                    var texData = request.GetData<byte>();
 
-                    WriteTextureToFile(args.timestampNs.ToString());
-
+                    WriteNativeDataToFile(texData, rt.width, rt.height, args.timestampNs.ToString());
                     RenderTexture.ReleaseTemporary(rt);
                 }
             });
@@ -102,23 +103,18 @@ namespace ARKitStream
         }
 
         // Save camera image
-        public void WriteTextureToFile(string filename)
+        public void WriteNativeDataToFile(NativeArray<byte> data, int w, int h, string filename)
         {
-            if(tex2D == null)
-                throw new System.ArgumentNullException("texture");
-
             var path = Path.Combine(Application.persistentDataPath, timeStamp, "imgs", filename);
             SafeCreateDirectory(Path.Combine(Application.persistentDataPath, timeStamp, "imgs"));
 
             if (string.IsNullOrEmpty(path))
                 throw new System.InvalidOperationException("No path specified");
 
-            bytes = tex2D.EncodeToJPG();
-            ext = ".jpg";
-            if (bytes.Length > 0)
-            {
-                File.WriteAllBytes(path + ext, bytes);
-            }
+            var buffer = new byte[data.Length];
+            Marshal.Copy(data.GetPtr(), buffer, 0, data.Length);
+
+            Task.Run(() => RecorderUtils.WriteJPEGData(buffer, data.Length, w, h, path+".jpg"));
         }
 
         public static DirectoryInfo SafeCreateDirectory(string path)

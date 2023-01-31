@@ -74,4 +74,7 @@ crashlytics-build.properties
 
 .DS_Store
 
+# Burst
+/Build_Burst*
+
 
