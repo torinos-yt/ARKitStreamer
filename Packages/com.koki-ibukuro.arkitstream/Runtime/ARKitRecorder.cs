@@ -21,14 +21,11 @@ namespace ARKitStream
         byte[] bytes;
         string ext;
 
-        RecordController recordController;
-
         bool isRecording;
         string timeStamp;
 
         void Start()
         {
-            recordController = GameObject.Find("Record Button").GetComponent<RecordController>();
             sender = gameObject.GetComponent<ARKitSender>();
 
             // Set event for cameraManager
@@ -73,27 +70,25 @@ namespace ARKitStream
             }
 
             byte[] data = packet.Serialize();
-            if (recordController.IsRecord == true)
-            {
-                // Save AR data
-                SafeCreateDirectory(Application.persistentDataPath + "/" + timeStamp);
-                saveARtoFile(data);
 
-                RenderTexture.active = texture;
-                if(tex2D == null || texture.width != tex2D?.width || texture.height != tex2D?.height)
-                    tex2D = new Texture2D(texture.width, texture.height, TextureFormat.ARGB32, false, true);
+            // Save AR data
+            SafeCreateDirectory(Application.persistentDataPath + "/" + timeStamp);
+            saveARtoFile(data);
 
-                tex2D.ReadPixels(new Rect(0, 0, texture.width, texture.height), 0, 0);
-                RenderTexture.active = null;
+            RenderTexture.active = texture;
+            if(tex2D == null || texture.width != tex2D?.width || texture.height != tex2D?.height)
+                tex2D = new Texture2D(texture.width, texture.height, TextureFormat.ARGB32, false, true);
 
-                WriteTextureToFile(args.timestampNs.ToString());
-            }
+            tex2D.ReadPixels(new Rect(0, 0, texture.width, texture.height), 0, 0);
+            RenderTexture.active = null;
+
+            WriteTextureToFile(args.timestampNs.ToString());
         }
 
         // Save AR data
         void saveARtoFile(byte[] data)
         {
-            var savePath = Application.persistentDataPath + "/" + recordController.RecordTime + "/saved-ardata.bytes";
+            var savePath = Application.persistentDataPath + "/" + timeStamp + "/saved-ardata.bytes";
             using (var fs = new FileStream(savePath, FileMode.Append, FileAccess.Write, FileShare.Read))
             {
                 fs.Write(data, 0, data.Length);
@@ -107,8 +102,8 @@ namespace ARKitStream
             if(tex2D == null)
                 throw new System.ArgumentNullException("texture");
 
-            var path = Path.Combine(Application.persistentDataPath, recordController.RecordTime, "imgs", filename);
-            SafeCreateDirectory(Path.Combine(Application.persistentDataPath, recordController.RecordTime, "imgs"));
+            var path = Path.Combine(Application.persistentDataPath, timeStamp, "imgs", filename);
+            SafeCreateDirectory(Path.Combine(Application.persistentDataPath, timeStamp, "imgs"));
 
             if (string.IsNullOrEmpty(path))
                 throw new System.InvalidOperationException("No path specified");
