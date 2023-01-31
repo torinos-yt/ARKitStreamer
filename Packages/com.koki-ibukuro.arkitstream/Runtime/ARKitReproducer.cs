@@ -21,14 +21,22 @@ namespace ARKitStream
         IEnumerator<byte[]> coroutine;
 
         public Texture2D ARTexture => tex;
+        public bool IsValid { get; private set; }
 
         void Awake()
         {
             Application.targetFrameRate = targetFrameRate;
+            IsValid = Directory.Exists(savePath+"/imgs") && File.Exists(savePath+"/saved-ardata.bytes");
         }
 
         void Start()
         {
+            if(!IsValid)
+            {
+                Debug.LogError("Please specify a valid path containing saved ar datas");
+                return;
+            }
+
             receiver = gameObject.GetComponent<ARKitReceiver>();
 
             tex = new Texture2D(1440, 1920);
@@ -64,6 +72,8 @@ namespace ARKitStream
 
         void Update()
         {
+            if(!IsValid) return;
+
             coroutine.MoveNext();
             if (coroutine.Current.Length > 0)
             {
@@ -124,6 +134,7 @@ namespace ARKitStream
         // Set texture by captured camera image
         void OnCameraFrameReceived(ARCameraFrameEventArgs args)
         {
+            Debug.Log("Frame");
             var imgPath = savePath + "/imgs/";
             var cameraImagePath = imgPath + args.timestampNs.Value + ".jpg";
             if (File.Exists(cameraImagePath))
