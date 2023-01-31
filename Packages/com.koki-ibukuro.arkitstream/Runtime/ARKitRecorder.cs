@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.XR.ARFoundation;
 using ARKitStream.Internal;
 
@@ -28,17 +29,7 @@ namespace ARKitStream
         {
             sender = gameObject.GetComponent<ARKitSender>();
 
-            // Set event for cameraManager
-            // cameraManager.frameReceived += OnCameraFrameReceived;
             InitSubSenders();
-        }
-
-        void OnDestroy()
-        {
-            if (cameraManager != null)
-            {
-                // cameraManager.frameReceived -= OnCameraFrameReceived;
-            }
         }
 
         void OnValidate()
@@ -71,18 +62,32 @@ namespace ARKitStream
 
             byte[] data = packet.Serialize();
 
-            // Save AR data
-            SafeCreateDirectory(Application.persistentDataPath + "/" + timeStamp);
-            saveARtoFile(data);
-
-            RenderTexture.active = texture;
             if(tex2D == null || texture.width != tex2D?.width || texture.height != tex2D?.height)
-                tex2D = new Texture2D(texture.width, texture.height, TextureFormat.ARGB32, false, true);
+                tex2D = new Texture2D(texture.width, texture.height, TextureFormat.RGBA32, false, true);
 
-            tex2D.ReadPixels(new Rect(0, 0, texture.width, texture.height), 0, 0);
-            RenderTexture.active = null;
+            var rt = RenderTexture.GetTemporary(texture.width, texture.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+            Graphics.CopyTexture(texture, rt);
 
-            WriteTextureToFile(args.timestampNs.ToString());
+            AsyncGPUReadback.Request(rt, 0, request => {
+                if (request.hasError)
+                {
+                    Debug.LogError("Failed download texture data");
+                    RenderTexture.ReleaseTemporary(rt);
+                }
+                else
+                {
+                    // Save AR data
+                    SafeCreateDirectory(Application.persistentDataPath + "/" + timeStamp);
+                    saveARtoFile(data);
+
+                    var texData = request.GetData<Color32>();
+                    tex2D.LoadRawTextureData(texData);
+
+                    WriteTextureToFile(args.timestampNs.ToString());
+
+                    RenderTexture.ReleaseTemporary(rt);
+                }
+            });
         }
 
         // Save AR data
@@ -130,6 +135,7 @@ namespace ARKitStream
             IsRecording = !IsRecording;
 
             if(IsRecording) timeStamp = DateTime.Now.ToString("yyyyMMddHHmm");
+            else AsyncGPUReadback.WaitAllRequests();
         }
 
         void InitSubSenders()

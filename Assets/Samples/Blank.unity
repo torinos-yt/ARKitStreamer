@@ -830,7 +830,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cameraManager: {fileID: 906813953}
   targetFrameRate: 60
-  savePath: /Users/openhub-ar/Library/Application Support/asus4/ARKitStreamer
+  savePath: /Users/openhub-ar/Documents/RecordData/202301311831
 --- !u!1 &2014463251
 GameObject:
   m_ObjectHideFlags: 0
