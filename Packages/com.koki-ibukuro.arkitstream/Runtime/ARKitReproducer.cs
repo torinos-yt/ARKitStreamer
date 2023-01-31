@@ -12,24 +12,15 @@ namespace ARKitStream
     [RequireComponent(typeof(ARKitReceiver))]
     public sealed class ARKitReproducer : MonoBehaviour
     {
-
         [SerializeField] ARCameraManager cameraManager = null;
-        [SerializeField] uint port = 8888;
         [SerializeField] int targetFrameRate = 30;
+        [SerializeField] string savePath;
 
         ARKitReceiver receiver;
-
-        RenderTexture renderTexture;
-        public string SavePath;
-        [SerializeField] string dirPath;
         Texture2D tex;
         IEnumerator<byte[]> coroutine;
-        Camera _camera;
-        float m_LastLocalizeTime = 0;
-        float m_LocalizationInterval = 4;
-        bool isLocalizing = false;
 
-        public Texture2D Texture => tex;
+        public Texture2D ARTexture => tex;
 
         void Awake()
         {
@@ -40,8 +31,6 @@ namespace ARKitStream
         {
             receiver = gameObject.GetComponent<ARKitReceiver>();
 
-            SavePath = Application.persistentDataPath + "/saved-ardata.bytes";
-            dirPath = Application.persistentDataPath + "/imgs/";
             tex = new Texture2D(1440, 1920);
 
             // Prepare coroutine for loading AR data
@@ -52,14 +41,9 @@ namespace ARKitStream
             var commandBuffer = new CommandBuffer();
             commandBuffer.name = "CameraView";
             commandBuffer.Blit(tex, BuiltinRenderTextureType.CameraTarget);
-            _camera = GameObject.Find("AR Camera").GetComponent<Camera>();
-            _camera.AddCommandBuffer(CameraEvent.BeforeForwardOpaque, commandBuffer);
 
-            if (renderTexture == null)
-            {
-                renderTexture = new RenderTexture(1920, 1440, 0, RenderTextureFormat.ARGB32);
-            }
-
+            var camera = cameraManager.GetComponent<Camera>();
+            camera.AddCommandBuffer(CameraEvent.BeforeForwardOpaque, commandBuffer);
         }
 
         void OnDestroy()
@@ -92,7 +76,9 @@ namespace ARKitStream
         {
             const byte RecordSeparator = 0x1e;
 
-            using (var stream = File.OpenRead(SavePath))
+            var packetPath = savePath + "/saved-ardata.bytes";
+
+            using (var stream = File.OpenRead(packetPath))
             {
                 for ( ; ; )
                 {
@@ -138,8 +124,8 @@ namespace ARKitStream
         // Set texture by captured camera image
         void OnCameraFrameReceived(ARCameraFrameEventArgs args)
         {
-            // Debug.Log("OnFrame");
-            var cameraImagePath = dirPath + args.timestampNs.Value + ".jpg";
+            var imgPath = savePath + "/imgs/";
+            var cameraImagePath = imgPath + args.timestampNs.Value + ".jpg";
             if (File.Exists(cameraImagePath))
             {
                 FileStream stream = File.OpenRead(cameraImagePath);

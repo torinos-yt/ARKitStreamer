@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
-using UnityEngine.XR.ARSubsystems;
 using ARKitStream.Internal;
 
 // Save AR Related data and camera images
@@ -13,18 +12,19 @@ namespace ARKitStream
     public sealed class ARKitRecorder : MonoBehaviour
     {
         [SerializeField] ARCameraManager cameraManager = null;
-        ARKitSender sender;
-        internal event Action<ARKitRemotePacket> PacketTransformer;
-        Texture2D mTexture;
-        XRCpuImage image;
-        Texture2D Tex2D;
-        byte[] bytes;
-        String ext;
-        RecordController recordController;
-        public string SavePath;
 
-        bool _received;
-        string _timeStamp;
+        internal event Action<ARKitRemotePacket> PacketTransformer;
+
+        ARKitSender sender;
+
+        Texture2D tex2D;
+        byte[] bytes;
+        string ext;
+
+        RecordController recordController;
+
+        bool isRecording;
+        string timeStamp;
 
         void Start()
         {
@@ -53,9 +53,10 @@ namespace ARKitStream
         }
 
         // Event with getting ARCameraFrame for cameraManager
-        internal unsafe void OnCameraFrameReceived(ARCameraFrameEventArgs args, RenderTexture texture)
+        internal void OnCameraFrameReceived(ARCameraFrameEventArgs args, RenderTexture texture)
         {
-            // _received = true;
+            if(!isRecording) return;
+
             // Get AR data
             var packet = new ARKitRemotePacket()
             {
@@ -75,14 +76,14 @@ namespace ARKitStream
             if (recordController.IsRecord == true)
             {
                 // Save AR data
-                SafeCreateDirectory(Application.persistentDataPath + "/" + recordController.RecordTime);
+                SafeCreateDirectory(Application.persistentDataPath + "/" + timeStamp);
                 saveARtoFile(data);
 
                 RenderTexture.active = texture;
-                if(Tex2D == null || texture.width != Tex2D?.width || texture.height != Tex2D?.height)
-                    Tex2D = new Texture2D(texture.width, texture.height, TextureFormat.ARGB32, false, true);
+                if(tex2D == null || texture.width != tex2D?.width || texture.height != tex2D?.height)
+                    tex2D = new Texture2D(texture.width, texture.height, TextureFormat.ARGB32, false, true);
 
-                Tex2D.ReadPixels(new Rect(0, 0, texture.width, texture.height), 0, 0);
+                tex2D.ReadPixels(new Rect(0, 0, texture.width, texture.height), 0, 0);
                 RenderTexture.active = null;
 
                 WriteTextureToFile(args.timestampNs.ToString());
@@ -92,8 +93,8 @@ namespace ARKitStream
         // Save AR data
         void saveARtoFile(byte[] data)
         {
-            SavePath = Application.persistentDataPath + "/" + recordController.RecordTime + "/saved-ardata.bytes";
-            using (var fs = new FileStream(SavePath, FileMode.Append, FileAccess.Write, FileShare.Read))
+            var savePath = Application.persistentDataPath + "/" + recordController.RecordTime + "/saved-ardata.bytes";
+            using (var fs = new FileStream(savePath, FileMode.Append, FileAccess.Write, FileShare.Read))
             {
                 fs.Write(data, 0, data.Length);
                 for (int i = 0; i < 5; i++) fs.WriteByte(0x1e); // record separator
@@ -103,7 +104,7 @@ namespace ARKitStream
         // Save camera image
         public void WriteTextureToFile(string filename)
         {
-            if(Tex2D == null)
+            if(tex2D == null)
                 throw new System.ArgumentNullException("texture");
 
             var path = Path.Combine(Application.persistentDataPath, recordController.RecordTime, "imgs", filename);
@@ -112,7 +113,7 @@ namespace ARKitStream
             if (string.IsNullOrEmpty(path))
                 throw new System.InvalidOperationException("No path specified");
 
-            bytes = Tex2D.EncodeToJPG();
+            bytes = tex2D.EncodeToJPG();
             ext = ".jpg";
             if (bytes.Length > 0)
             {
@@ -127,6 +128,13 @@ namespace ARKitStream
                 return null;
             }
             return Directory.CreateDirectory(path);
+        }
+
+        public void ToggleRecord()
+        {
+            isRecording = !isRecording;
+
+            if(isRecording) timeStamp = DateTime.Now.ToString("yyyyMMddHHmm");
         }
 
         void InitSubSenders()

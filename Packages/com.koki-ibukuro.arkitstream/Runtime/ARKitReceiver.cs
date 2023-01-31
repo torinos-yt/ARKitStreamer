@@ -185,7 +185,7 @@ namespace ARKitStream
 
         private void Update()
         {
-            if(reproducer?.Texture == null)
+            if(reproducer?.ARTexture == null)
             {
                 var rt = ndiReceiver.texture;
                 if (rt == null)
@@ -222,17 +222,17 @@ namespace ARKitStream
             }
             else
             {
-                if (ndiSourceSize.x != reproducer.Texture.width || ndiSourceSize.y != reproducer.Texture.height)
+                if (ndiSourceSize.x != reproducer.ARTexture.width || ndiSourceSize.y != reproducer.ARTexture.height)
                 {
-                    InitTexture(reproducer.Texture);
-                    ndiSourceSize = new Vector2Int(reproducer.Texture.width, reproducer.Texture.height);
+                    InitTexture(reproducer.ARTexture);
+                    ndiSourceSize = new Vector2Int(reproducer.ARTexture.width, reproducer.ARTexture.height);
                 }
 
                 // Decode Textures
                 commandBuffer.Clear();
                 for (int i = 0; i < renderTextures.Length; i++)
                 {
-                    commandBuffer.Blit(reproducer.Texture, renderTextures[i], bufferMaterial, i);
+                    commandBuffer.Blit(reproducer.ARTexture, renderTextures[i], bufferMaterial, i);
                 }
                 Graphics.ExecuteCommandBuffer(commandBuffer);
 
