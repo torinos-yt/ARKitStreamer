@@ -134,7 +134,6 @@ namespace ARKitStream
         // Set texture by captured camera image
         void OnCameraFrameReceived(ARCameraFrameEventArgs args)
         {
-            Debug.Log("Frame");
             var imgPath = savePath + "/imgs/";
             var cameraImagePath = imgPath + args.timestampNs.Value + ".jpg";
             if (File.Exists(cameraImagePath))

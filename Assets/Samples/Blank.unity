@@ -497,6 +497,7 @@ GameObject:
   - component: {fileID: 1400173351}
   - component: {fileID: 1400173350}
   - component: {fileID: 1400173349}
+  - component: {fileID: 1400173352}
   m_Layer: 5
   m_Name: Record Button
   m_TagString: Untagged
@@ -569,9 +570,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2014463255}
-        m_TargetAssemblyTypeName: ARKitStream.ARKitRecorder, ARKitStream
-        m_MethodName: ToggleRecord
+      - m_Target: {fileID: 1400173352}
+        m_TargetAssemblyTypeName: RecordButton, Assembly-CSharp
+        m_MethodName: Record
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -619,6 +620,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1400173346}
   m_CullTransparentMesh: 1
+--- !u!114 &1400173352
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1400173346}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1c6b7d375ec9450583e41421a541032, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _image: {fileID: 1743752208}
+  _recorder: {fileID: 2014463255}
 --- !u!1 &1530200470
 GameObject:
   m_ObjectHideFlags: 0

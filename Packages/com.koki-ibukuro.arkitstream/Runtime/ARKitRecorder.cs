@@ -21,7 +21,7 @@ namespace ARKitStream
         byte[] bytes;
         string ext;
 
-        bool isRecording;
+        public bool IsRecording { get; private set; }
         string timeStamp;
 
         void Start()
@@ -52,7 +52,7 @@ namespace ARKitStream
         // Event with getting ARCameraFrame for cameraManager
         internal void OnCameraFrameReceived(ARCameraFrameEventArgs args, RenderTexture texture)
         {
-            if(!isRecording) return;
+            if(!IsRecording) return;
 
             // Get AR data
             var packet = new ARKitRemotePacket()
@@ -127,9 +127,9 @@ namespace ARKitStream
 
         public void ToggleRecord()
         {
-            isRecording = !isRecording;
+            IsRecording = !IsRecording;
 
-            if(isRecording) timeStamp = DateTime.Now.ToString("yyyyMMddHHmm");
+            if(IsRecording) timeStamp = DateTime.Now.ToString("yyyyMMddHHmm");
         }
 
         void InitSubSenders()
