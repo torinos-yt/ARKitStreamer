@@ -4,6 +4,8 @@ using UnityEngine.Rendering;
 using UnityEngine.XR.ARFoundation;
 using System.IO;
 using ARKitStream.Internal;
+using System;
+using System.Runtime.InteropServices;
 
 // Replay AR data and camera images
 namespace ARKitStream
@@ -39,7 +41,7 @@ namespace ARKitStream
 
             receiver = gameObject.GetComponent<ARKitReceiver>();
 
-            tex = new Texture2D(1440, 1920);
+            tex = new Texture2D(1440, 1920, TextureFormat.RGB24, 0, true);
 
             // Prepare coroutine for loading AR data
             coroutine = LoadARFileCoroutine();
@@ -141,7 +143,9 @@ namespace ARKitStream
                 FileStream stream = File.OpenRead(cameraImagePath);
                 var data = new byte[stream.Length];
                 stream.Read(data, 0, (int)stream.Length);
-                tex.LoadImage(data);
+
+                tex = RecorderUtils.LoadJPEGData(tex, data);
+
                 float curTime = Time.unscaledTime;
                 stream.Close();
             }

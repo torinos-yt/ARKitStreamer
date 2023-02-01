@@ -119,7 +119,7 @@ namespace ARKitStream
             // width = width;
             // height = height * 2;
 
-            renderTexture = new RenderTexture(width/2, height/2, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+            renderTexture = new RenderTexture((int)(width/1.5f), (int)(height/1.5f), 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
             var name = string.Format("ARKit Stream");
             var go = new GameObject(name);
             go.transform.SetParent(transform, false);
