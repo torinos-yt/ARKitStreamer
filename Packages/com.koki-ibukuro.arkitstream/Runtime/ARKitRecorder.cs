@@ -7,6 +7,7 @@ using ARKitStream.Internal;
 using Unity.Collections;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Unity.Mathematics;
 
 // Save AR Related data and camera images
 namespace ARKitStream
@@ -49,15 +50,18 @@ namespace ARKitStream
             if(!IsRecording) return;
 
             // Get AR data
+            cameraManager.TryGetIntrinsics(out var intrinsics);
             var packet = new ARKitRemotePacket()
             {
                 cameraFrame = new ARKitRemotePacket.CameraFrameEvent()
                 {
                     timestampNs = args.timestampNs.Value,
                     projectionMatrix = args.projectionMatrix.Value,
-                    displayMatrix = args.displayMatrix.Value
+                    displayMatrix = args.displayMatrix.Value,
+                    intrinsics = new float4(intrinsics.focalLength.x, intrinsics.focalLength.y, intrinsics.principalPoint.x, intrinsics.principalPoint.y)
                 }
             };
+
             if (PacketTransformer != null)
             {
                 PacketTransformer(packet);
