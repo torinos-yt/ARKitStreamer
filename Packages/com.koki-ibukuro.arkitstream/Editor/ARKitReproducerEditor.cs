@@ -20,7 +20,8 @@ namespace ARKitStream
 
             if(GUILayout.Button("Browse", GUILayout.Width(60)))
             {
-                var result = EditorUtility.OpenFolderPanel("Open", Application.dataPath, string.Empty);
+                string startPath = string.IsNullOrEmpty(path.stringValue)? Application.dataPath:path.stringValue;
+                var result = EditorUtility.OpenFolderPanel("Open", startPath, string.Empty);
                 path.stringValue = string.IsNullOrEmpty(result) ? path.stringValue : result;
             }
 

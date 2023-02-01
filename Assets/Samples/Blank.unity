@@ -830,7 +830,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cameraManager: {fileID: 906813953}
   targetFrameRate: 60
-  savePath: /Users/openhub-ar/Documents/RecordData/202301311831
+  savePath: 
 --- !u!1 &2014463251
 GameObject:
   m_ObjectHideFlags: 0

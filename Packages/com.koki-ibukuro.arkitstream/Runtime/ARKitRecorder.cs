@@ -111,10 +111,12 @@ namespace ARKitStream
             if (string.IsNullOrEmpty(path))
                 throw new System.InvalidOperationException("No path specified");
 
-            var buffer = new byte[data.Length];
-            Marshal.Copy(data.GetPtr(), buffer, 0, data.Length);
+            if(bytes?.Length != data.Length)
+                bytes = new byte[data.Length];
+            
+            Marshal.Copy(data.GetPtr(), bytes, 0, data.Length);
 
-            Task.Run(() => RecorderUtils.WriteJPEGData(buffer, data.Length, w, h, path+".jpg"));
+            Task.Run(() => RecorderUtils.WriteJPEGData(bytes, data.Length, w, h, path+".jpg"));
         }
 
         public static DirectoryInfo SafeCreateDirectory(string path)
