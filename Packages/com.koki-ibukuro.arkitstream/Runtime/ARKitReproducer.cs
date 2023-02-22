@@ -21,6 +21,7 @@ namespace ARKitStream
         ARKitReceiver receiver;
         Texture2D tex;
         IEnumerator<byte[]> coroutine;
+        Camera arCamera;
 
         public Texture2D ARTexture => tex;
         public bool IsValid { get; private set; }
@@ -40,6 +41,7 @@ namespace ARKitStream
             }
 
             receiver = gameObject.GetComponent<ARKitReceiver>();
+            arCamera = cameraManager.GetComponent<Camera>();
 
             tex = new Texture2D(1440, 1920, TextureFormat.RGB24, 0, true);
 
@@ -81,6 +83,11 @@ namespace ARKitStream
             {
                 receiver.Packet = ARKitRemotePacket.Deserialize(coroutine.Current);
             }
+        }
+
+        void LateUpdate()
+        {
+            arCamera.ResetProjectionMatrix();
         }
 
         // Coroutine for loading saved AR data
