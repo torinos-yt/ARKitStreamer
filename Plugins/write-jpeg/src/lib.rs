@@ -48,9 +48,25 @@ pub unsafe extern "C" fn decode_jpeg(
 ) {
     let input_bytes = slice::from_raw_parts(data, src_size as usize).to_vec();
 
-    let mut decompressor = Decompressor::new().unwrap();
+    let r = Decompressor::new();
+    if r.is_err(){
+        *dst_width = -1;
+        *dst_height = -1;
+        *dst_size = -1;
 
-    let header = decompressor.read_header(&input_bytes).unwrap();
+        return;
+    }
+    let mut decompressor = r.unwrap();
+
+    let r = decompressor.read_header(&input_bytes);
+    if r.is_err(){
+        *dst_width = -1;
+        *dst_height = -1;
+        *dst_size = -1;
+
+        return;
+    }
+    let header = r.unwrap();
     let (width, height) = (header.width, header.height);
     *dst_width = header.width as i32;
     *dst_height = header.height as i32;
@@ -63,7 +79,15 @@ pub unsafe extern "C" fn decode_jpeg(
         format: PixelFormat::RGB,
     };
 
-    decompressor.decompress(&input_bytes, image.as_deref_mut()).unwrap();
+    let r = decompressor.decompress(&input_bytes, image.as_deref_mut());
+    if r.is_err(){
+        *dst_width = -1;
+        *dst_height = -1;
+        *dst_size = -1;
+
+        return;
+    }
+    r.unwrap();
 
     *dst_size = image.pixels.len() as i32;
 }

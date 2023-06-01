@@ -28,13 +28,16 @@ namespace ARKitStream
         static internal Texture2D LoadJPEGData(Texture2D texture, byte[] data)
         {
 #if UNITY_EDITOR
-            IntPtr ptr =  RecorderUtils.DecodeJPEG(data, data.Length, out var w, out var h, out var size, _ptr);
+            IntPtr ptr = RecorderUtils.DecodeJPEG(data, data.Length, out var w, out var h, out var size, _ptr);
 
-            if(texture.width != w || texture.height != h)
-                texture = new Texture2D(w, h, TextureFormat.RGB24, false);
+            if(size != -1)
+            {
+                if(texture.width != w || texture.height != h)
+                    texture = new Texture2D(w, h, TextureFormat.RGB24, false);
 
-            texture.LoadRawTextureData(ptr, size);
-            texture.Apply();
+                texture.LoadRawTextureData(ptr, size);
+                texture.Apply();
+            }
 #endif
             return texture;
         }

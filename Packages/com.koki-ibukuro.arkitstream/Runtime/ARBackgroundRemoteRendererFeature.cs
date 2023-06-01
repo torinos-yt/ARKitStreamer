@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Reflection;
+using UnityEngine;
 using UnityEngine.Rendering;
 #if MODULE_URP_ENABLED
 using UnityEngine.Rendering.Universal;
@@ -38,10 +39,10 @@ namespace ARKitStream
             m_BackgroundMesh = new Mesh();
             m_BackgroundMesh.vertices =  new Vector3[]
             {
-                new Vector3(0f, 0f, 0.1f),
-                new Vector3(0f, 1f, 0.1f),
-                new Vector3(1f, 1f, 0.1f),
-                new Vector3(1f, 0f, 0.1f),
+                new Vector3(0f, 0f, .001f),
+                new Vector3(0f, 1f, .001f),
+                new Vector3(1f, 1f, .001f),
+                new Vector3(1f, 0f, .001f),
             };
             m_BackgroundMesh.uv = new Vector2[]
             {
@@ -90,7 +91,7 @@ namespace ARKitStream
             /// <summary>
             /// The orthogonal projection matrix for the background rendering.
             /// </summary>
-            static readonly Matrix4x4 k_BackgroundOrthoProjection = Matrix4x4.Ortho(0f, 1f, 0f, 1f, -0.1f, 9.9f);
+            static readonly Matrix4x4 k_BackgroundOrthoProjection = Matrix4x4.Ortho(0f, 1f, 0f, 1f, -.1f, 9.9f);
 
             /// <summary>
             /// The mesh for rendering the background material.
@@ -118,6 +119,8 @@ namespace ARKitStream
                 this.renderPassEvent = renderPassEvent;
             }
 
+            MethodInfo m_addBeforeBackgroundRenderHandler;
+
             /// <summary>
             /// Setup the background render pass.
             /// </summary>
@@ -129,6 +132,8 @@ namespace ARKitStream
                 m_BackgroundMesh = backgroundMesh;
                 m_BackgroundMaterial = backgroundMaterial;
                 m_InvertCulling = invertCulling;
+
+                m_addBeforeBackgroundRenderHandler = typeof(ARCameraBackground).GetMethod("AddBeforeBackgroundRenderHandler", BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Static, null, new []{typeof(CommandBuffer)}, null);
             }
 
             /// <summary>
@@ -151,7 +156,8 @@ namespace ARKitStream
                 var cmd = CommandBufferPool.Get(k_CustomRenderPassName);
                 cmd.BeginSample(k_CustomRenderPassName);
 
-                // ARCameraBackground.AddOpenGLES3ResetStateCommand(cmd);
+                m_addBeforeBackgroundRenderHandler.Invoke(null, new object[]{cmd});
+
                 cmd.SetInvertCulling(m_InvertCulling);
 
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, k_BackgroundOrthoProjection);

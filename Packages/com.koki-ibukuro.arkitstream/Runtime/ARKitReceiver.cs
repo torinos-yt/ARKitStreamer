@@ -244,15 +244,15 @@ namespace ARKitStream
             }
         }
 
-        private void OnGUI()
-        {
-            if (YTexture == null || CbCrTexture == null)
-            {
-                return;
-            }
-            GUI.DrawTexture(new Rect(0, 0, 256, 256), YTexture);
-            GUI.DrawTexture(new Rect(0, 256, 256, 256), CbCrTexture);
-        }
+        // private void OnGUI()
+        // {
+        //     if (YTexture == null || CbCrTexture == null)
+        //     {
+        //         return;
+        //     }
+        //     GUI.DrawTexture(new Rect(0, 0, 256, 256), YTexture);
+        //     GUI.DrawTexture(new Rect(0, 256, 256, 256), CbCrTexture);
+        // }
 
         private void Release(RenderTexture tex)
         {
